@@ -19,8 +19,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # API Key'ler
-TELEGRAM_TOKEN = "7711226117:AAEpa4WQW6LEUl4tbGi1IxnmUJM-kPkoaOA"
-FINNHUB_API_KEY = "d02n73hr01qi6jgi4mr0d02n73hr01qi6jgi4mrg"
+TELEGRAM_TOKEN = ""
+FINNHUB_API_KEY = ""
 
 # Finnhub API için header
 HEADERS = {
