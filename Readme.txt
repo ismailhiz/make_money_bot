@@ -22,8 +22,3 @@ Kendisi front-end geliştirme, yapay zekâ uygulamaları ve eğitim odaklı proj
 ```bash
 /stock AAPL
 /analyze TSLA
-
-
-
-
-    
