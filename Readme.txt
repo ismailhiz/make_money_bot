@@ -1,163 +1,70 @@
-BU KOD ÇALIŞAN BÜTÜN NASDAQ HİSSELERİNİ ÇEKEEN KOD :
+# 📈 Universal Stock Bot 🤖
 
+**Universal Stock Bot**, uluslararası borsa hisseleri hakkında anlık bilgi sunan ve yapay zekâ (AI) destekli analiz sağlayan gelişmiş bir **Telegram botudur**.
 
-import os
-import asyncio
-from datetime import datetime
-from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters
-)
-import requests
-import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+## 🚀 Özellikler
 
-# API Key'ler
-TELEGRAM_TOKEN = ""
-FINNHUB_API_KEY = ""
+- 🔍 `/stock SYMBOL` komutuyla herhangi bir hisse senedinin güncel piyasa verilerini alın.
+- 🤖 `/analyze SYMBOL` komutuyla AI destekli yatırımcı analizine ulaşın.
+- 🧠 Yapay zekâ analizleri FinBERT (finance-specific BERT) modeli ile gerçekleştiriliyor.
+- 📉 Hisse senedine özel günlük performans grafikleri otomatik olarak oluşturulur.
+- 🌍 Tüm dünyadan hisse senetlerini destekler (örnek: AAPL, TSLA, NVDA, MSFT, vb.).
+- ✨ Türkçe ve İngilizce kullanım için uygun yapı.
 
-# Finnhub API için header
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
+## 👨‍💻 Geliştirici
 
-def get_stock_data(symbol):
-    try:
-        url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={FINNHUB_API_KEY}"
-        response = requests.get(url, headers=HEADERS, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-        
-        if data.get('c') is None:
-            return {'error': 'Stock data not found', 'valid': False}
-            
-        return {
-            'current': data['c'],
-            'open': data['o'],
-            'high': data['h'],
-            'low': data['l'],
-            'valid': True
-        }
-    except Exception as e:
-        return {'error': f"API Error: {str(e)}", 'valid': False}
+Bu bot, yazılım geliştirici ve eğitmen **İsmail Hız** tarafından geliştirilmiştir.  
+Kendisi front-end geliştirme, yapay zekâ uygulamaları ve eğitim odaklı projelerde aktif olarak çalışmaktadır.  
+Ücretsiz yazılım eğitimleri sunduğu [Hizzacademy](https://github.com/ismailhiz) platformunun da kurucusudur.
 
-def generate_stock_chart(symbol, data):
-    try:
-        df = pd.DataFrame({
-            'Price': [data['current']],
-            'Open': [data['open']],
-            'High': [data['high']],
-            'Low': [data['low']]
-        })
-        
-        plt.figure(figsize=(10, 6))
-        ax = df.plot(kind='bar', color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'])
-        
-        plt.title(f"{symbol} Stock Data ($)", pad=20, fontsize=14)
-        plt.xlabel('')
-        plt.ylabel('Price ($)', fontsize=12)
-        plt.xticks(rotation=0)
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        for p in ax.patches:
-            ax.annotate(f"${p.get_height():.2f}", 
-                       (p.get_x() + p.get_width() / 2., p.get_height()),
-                       ha='center', va='center', xytext=(0, 10),
-                       textcoords='offset points', fontsize=10)
-        
-        plt.tight_layout()
-        chart_path = f"{symbol}_chart.png"
-        plt.savefig(chart_path, dpi=300, bbox_inches='tight')
-        plt.close()
-        return chart_path
-    except Exception as e:
-        print(f"Chart error: {e}")
-        return None
+## 📷 Örnek Kullanım
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message:
-        return
-        
-    help_text = """
-📈 *Universal Stock Bot* 📉
+```
+/stock AAPL
+/analyze TSLA
+```
 
-Now supports ALL international stocks!
+Bot size aşağıdaki bilgileri sağlar:
 
-💡 Examples:
-/stock AAPL  → Apple Inc.
-/stock TSLA  → Tesla
-/stock MSFT  → Microsoft
-/stock AMZN  → Amazon
+- ✅ Anlık fiyat
+- 📈 Gün içi en yüksek/düşük değer
+- 🧠 AI ile yorum: "Yatırımcılar dikkatli olmalı", "İyimser olabilir" gibi öneriler
+- 🖼️ Günlük performans grafiği
 
-✨ Just type /stock SYMBOL
-    """
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+## ⚙️ Kullanılan Teknolojiler
 
-async def stock_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not context.args:
-        if update.message:
-            await update.message.reply_text("❌ Please enter a stock symbol. Example: /stock AAPL")
-        return
-    
-    symbol = context.args[0].upper().strip()
-    
-    try:
-        # Get stock data
-        data = get_stock_data(symbol)
-        if not data.get('valid'):
-            await update.message.reply_text(f"❌ Invalid stock symbol or API error: {data.get('error', 'Unknown error')}")
-            return
-        
-        # Generate chart
-        chart_path = generate_stock_chart(symbol, data)
-        
-        # Prepare message
-        message = (
-            f"📊 *{symbol} Stock Info*\n\n"
-            f"• Current: `${data['current']:.2f}`\n"
-            f"• Open: `${data['open']:.2f}`\n"
-            f"• High: `${data['high']:.2f}`\n"
-            f"• Low: `${data['low']:.2f}`\n\n"
-            f"⏳ Last update: {datetime.now().strftime('%d.%m.%Y %H:%M')}"
-        )
-        
-        await update.message.reply_text(message, parse_mode='Markdown')
-        
-        if chart_path:
-            try:
-                await update.message.reply_photo(
-                    photo=open(chart_path, 'rb'),
-                    caption=f"{symbol} Daily Performance"
-                )
-                os.remove(chart_path)
-            except Exception as e:
-                print(f"Failed to send chart: {e}")
-                
-    except Exception as e:
-        print(f"Error details: {e}")
-        if update.message:
-            await update.message.reply_text("⚠️ An error occurred. Please try again later.")
+- **Python 3.10+**
+- `python-telegram-bot` — Telegram API entegrasyonu
+- `FinBERT` (HuggingFace) — AI destekli duygu analizi
+- `Matplotlib` — Hisse grafiklerinin oluşturulması
+- `requests` — API ile veri çekme
+- `dotenv` — Ortam değişkenlerinin güvenli yönetimi
 
-def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("stock", stock_query))
-    
-    print("🤖 Universal Stock Bot starting...")
-    app.run_polling()
+## 🧪 Kurulum
 
-if __name__ == "__main__":
-    main()
+```bash
+# 1. Depoyu klonla
+git clone https://github.com/ismailhiz/universal-stock-bot.git
+cd universal-stock-bot
 
-    BURADA BİTİYOR...
+# 2. Sanal ortam oluştur (isteğe bağlı)
+python -m venv venv
+source venv/bin/activate
 
+# 3. Gerekli kütüphaneleri yükle
+pip install -r requirements.txt
+
+# 4. API anahtarlarını ekle (config.py veya .env üzerinden)
+```
+
+## 📬 Nasıl Kullanılır?
+
+1. Telegram’da kendi botunuzu oluşturun: [@BotFather](https://t.me/BotFather)
+2. `TELEGRAM_BOT_TOKEN` anahtarını alın ve config dosyasına ekleyin.
+3. Python dosyasını çalıştırın:
+```bash
+python main.py
+```
 
 
 
