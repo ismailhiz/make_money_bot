@@ -1,4 +1,4 @@
-# 📈 Universal Stock Bot 🤖
+📈 Universal Stock Bot 🤖
 
 **Universal Stock Bot**, uluslararası borsa hisseleri hakkında anlık bilgi sunan ve yapay zekâ (AI) destekli analiz sağlayan gelişmiş bir **Telegram botudur**.
 
